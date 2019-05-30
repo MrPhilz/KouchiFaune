@@ -1,1 +1,0 @@
-print "TEST SAM SALUT"
