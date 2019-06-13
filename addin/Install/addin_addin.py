@@ -5,19 +5,23 @@ import pythonaddins
 
 class ButtonClass1(object):
     """Implementation for addin_addin.button_1 (Button)"""
+    global rasterPath
     def __init__(self):
         self.enabled = True
         self.checked = False
     def onClick(self):
         print "Choix d'un repertoire de travail, ainsi que l'image a classifier..."
+        rasterPath = pythonaddins.OpenDialog("Selectionnez une couche matricielle...", False, "C:", "Ajouter")
+        print rasterPath
 
 class ButtonClass2(object):
     """Implementation for addin_addin.button_2 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Creation d'un masque..."
+        print "Clip de la couche matricielle: " + rasterPath
 
 class ButtonClass3(object):
     """Implementation for addin_addin.button_3 (Button)"""
