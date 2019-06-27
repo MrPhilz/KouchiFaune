@@ -3,9 +3,12 @@
 import arcpy
 import pythonaddins
 
+global wdPath
+global rasterPath
+
 class ButtonClass1(object):
     """Implementation for addin_addin.button_1 (Button)"""
-    global rasterPath
+
     def __init__(self):
         self.enabled = True
         self.checked = False
@@ -15,18 +18,22 @@ class ButtonClass1(object):
         rasterPath = pythonaddins.OpenDialog("Selectionnez une couche matricielle...", False, "C:", "Ajouter")
         print rasterPath
 
-        # mxd = arcpy.mapping.MapDocument("CURRENT")
         arcpy.MakeRasterLayer_management(rasterPath, "rasterLayer")
-        # arcpy.mapping.AddLayer(mxd, rasterLayer, "BOTTOM")
 
 class ButtonClass2(object):
     """Implementation for addin_addin.button_2 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Creation d'un masque..."
+        arcpy.CreateFeatureclass_management(wdPath, "mask.shp", "POLYGON")
+        # self.maskCoord = arcpy.Array()
         print "Clip de la couche matricielle: " + rasterPath
+
+    def onMouseDownMap(self, x, y, button, shift):
+        message = "Your mouse clicked:" + str(x) + ", " + str(y)
+        pythonaddins.MessageBox(message, "My Coordinates")
 
 class ButtonClass3(object):
     """Implementation for addin_addin.button_3 (Button)"""
