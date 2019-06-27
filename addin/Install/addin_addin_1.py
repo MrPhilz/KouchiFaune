@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import arcpy
 import pythonaddins
 
@@ -7,7 +9,7 @@ class ButtonClass1(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Choix d'un repertoire de travail, ainsi que l'image a classifier..."
 
 class ButtonClass2(object):
     """Implementation for addin_addin.button_2 (Button)"""
@@ -15,7 +17,7 @@ class ButtonClass2(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Creation d'un masque..."
 
 class ButtonClass3(object):
     """Implementation for addin_addin.button_3 (Button)"""
@@ -23,7 +25,7 @@ class ButtonClass3(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Debut de la creation des sites d'entrainement pour la classe: " + selectedClass
 
 class ButtonClass4(object):
     """Implementation for addin_addin.button_4 (Button)"""
@@ -31,7 +33,7 @@ class ButtonClass4(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Classification de la couche matricielle..."
 
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
@@ -39,7 +41,7 @@ class ButtonClass5(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Nettoyage de la couche matricielle..."
 
 class ButtonClass6(object):
     """Implementation for addin_addin.button_6 (Button)"""
@@ -47,7 +49,7 @@ class ButtonClass6(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Vectorisation de la couche matricielle..."
 
 class ButtonClass7(object):
     """Implementation for addin_addin.button_7 (Button)"""
@@ -55,18 +57,19 @@ class ButtonClass7(object):
         self.enabled = True
         self.checked = False
     def onClick(self):
-        pass
+        print "Extraction des intersections des polygones a l'aide d'un arbre de decision..."
 
 class ComboBoxClass1(object):
     """Implementation for addin_addin.combobox (ComboBox)"""
     def __init__(self):
-        self.items = ["item1", "item2"]
+        self.items = ["Vegetation saine", "Vegetation fletrie", "Sable sec", "Sable humide", "Laisse de mer"]
         self.editable = True
         self.enabled = True
-        self.dropdownWidth = 'WWWWWW'
-        self.width = 'WWWWWW'
+        self.dropdownWidth = 'WWWWWWWWWWWWWW'
+        self.width = 'WWWWWWWWWWWWWW'
     def onSelChange(self, selection):
-        pass
+        global selectedClass
+        selectedClass = selection
     def onEditChange(self, text):
         pass
     def onFocus(self, focused):
