@@ -11,8 +11,13 @@ class ButtonClass1(object):
         self.checked = False
     def onClick(self):
         print "Choix d'un repertoire de travail, ainsi que l'image a classifier..."
+        wdPath = pythonaddins.OpenDialog("Selectionnez un repertoire de travail...", False, "C:", "Ajouter")
         rasterPath = pythonaddins.OpenDialog("Selectionnez une couche matricielle...", False, "C:", "Ajouter")
         print rasterPath
+
+        # mxd = arcpy.mapping.MapDocument("CURRENT")
+        arcpy.MakeRasterLayer_management(rasterPath, "rasterLayer")
+        # arcpy.mapping.AddLayer(mxd, rasterLayer, "BOTTOM")
 
 class ButtonClass2(object):
     """Implementation for addin_addin.button_2 (Button)"""
