@@ -2,7 +2,8 @@
 
 import arcpy
 import pythonaddins
-import os
+
+arcpy.env.overwriteOutput = True
 
 class ButtonClass1(object):
     """Implementation for addin_addin.button_1 (Button)"""
@@ -14,27 +15,84 @@ class ButtonClass1(object):
         print "Choix d'un repertoire de travail, ainsi que l'image a classifier..."
         global wdPath
         wdPath = pythonaddins.OpenDialog("Selectionnez un repertoire de travail...", False, "C:", "Ajouter")
+        print wdPath
         global rasterPath
         rasterPath = pythonaddins.OpenDialog("Selectionnez une couche matricielle...", False, "C:", "Ajouter")
         print rasterPath
 
         arcpy.MakeRasterLayer_management(rasterPath, "rasterLayer")
 
-class ButtonClass2(object):
-    """Implementation for addin_addin.button_2 (Button)"""
+class ToolClass41(object):
+    """Implementation for addin_addin.tool (Tool)"""
     def __init__(self):
         self.enabled = True
-        self.checked = False
-        self.shape = "NONE"
+        self.cursor = 3
+        self.shape = "Line" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
+
+    def onLine(self, line_geometry):
+        print "Creation du masque..."
+        self.maskPart = line_geometry.getPart(0)
+        coord = []
+        for pt in self.maskPart:
+            coord.append([pt.X, pt.Y])
+
+        firstpoint = coord[0]
+        coord.append(firstpoint)
+
+        print "Coord avec premier point (pour fermer polygon) ", coord
+
+        # Set local variables
+        out_path = wdPath
+        out_name = "maskRaster"
+        geometry_type = "POLYGON"
+        template = ""
+        has_m = "DISABLED"
+        has_z = "DISABLED"
+        # Use Describe to get a SpatialReference object
+        spatial_ref = arcpy.Describe(rasterPath).spatialReference
+        # Execute CreateFeatureclass
+        result = arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, template,
+                                            has_m, has_z, spatial_ref)
+
+        global mask_class
+        mask_class = result[0]
+        with arcpy.da.InsertCursor(mask_class, ['SHAPE@']) as cursor:
+            cursor.insertRow([coord])
+
+class ToolClass43(object):
+    """Implementation for addin_addin.tool_2 (Tool)"""
+    def __init__(self):
+        self.enabled = True
+        self.shape = "NONE" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
     def onClick(self):
-        arcpy.env.overwriteOutput = True
-        print "Creation d'un masque..."
-        arcpy.CreateFeatureclass_management(wdPath, "mask.shp", "POLYGON")
-        # self.maskCoord = arcpy.Array()
-        print "Clip de la couche matricielle: " + rasterPath
-    def onMouseDownMap(self, x, y):
-        message = "Your mouse clicked:" + str(x) + ", " + str(y)
-        pythonaddins.MessageBox(message, "My Coordinates")
+        print "Execution du Extract by Mask..."
+        # Set local variables
+        inRaster = rasterPath
+        inMaskData = mask_class
+
+        # Execute ExtractByMask
+        outExtractByMask = arcpy.sa.ExtractByMask(inRaster, inMaskData)
+        arcpy.MakeRasterLayer_management(outExtractByMask, "extracted raster")
+
+class ComboBoxClass1(object):
+    """Implementation for addin_addin.combobox (ComboBox)"""
+    def __init__(self):
+        self.items = ["Vegetation saine", "Vegetation fletrie", "Sable sec", "Sable humide", "Laisse de mer"]
+        self.editable = True
+        self.enabled = False
+        self.dropdownWidth = 'WWWWWWWWWWWWWW'
+        self.width = 'WWWWWWWWWWWWWW'
+    def onSelChange(self, selection):
+        global selectedClass
+        selectedClass = selection
+    def onEditChange(self, text):
+        pass
+    def onFocus(self, focused):
+        pass
+    def onEnter(self):
+        pass
+    def refresh(self):
+        pass
 
 class ButtonClass3(object):
     """Implementation for addin_addin.button_3 (Button)"""
@@ -75,23 +133,3 @@ class ButtonClass7(object):
         self.checked = False
     def onClick(self):
         print "Extraction des intersections des polygones a l'aide d'un arbre de decision..."
-
-class ComboBoxClass1(object):
-    """Implementation for addin_addin.combobox (ComboBox)"""
-    def __init__(self):
-        self.items = ["Vegetation saine", "Vegetation fletrie", "Sable sec", "Sable humide", "Laisse de mer"]
-        self.editable = True
-        self.enabled = False
-        self.dropdownWidth = 'WWWWWWWWWWWWWW'
-        self.width = 'WWWWWWWWWWWWWW'
-    def onSelChange(self, selection):
-        global selectedClass
-        selectedClass = selection
-    def onEditChange(self, text):
-        pass
-    def onFocus(self, focused):
-        pass
-    def onEnter(self):
-        pass
-    def refresh(self):
-        pass
