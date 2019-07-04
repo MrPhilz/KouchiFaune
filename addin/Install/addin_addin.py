@@ -79,7 +79,7 @@ class ComboBoxClass1(object):
     def __init__(self):
         self.items = ["Vegetation saine", "Vegetation fletrie", "Sable sec", "Sable humide", "Laisse de mer"]
         self.editable = True
-        self.enabled = False
+        self.enabled = True
         self.dropdownWidth = 'WWWWWWWWWWWWWW'
         self.width = 'WWWWWWWWWWWWWW'
     def onSelChange(self, selection):
@@ -94,13 +94,43 @@ class ComboBoxClass1(object):
     def refresh(self):
         pass
 
-class ButtonClass3(object):
-    """Implementation for addin_addin.button_3 (Button)"""
+class ToolClass48(object):
+    """Implementation for addin_addin.tool (Tool)"""
     def __init__(self):
-        self.enabled = False
-        self.checked = False
+        self.enabled = True
+        self.shape = "Line" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
+
     def onClick(self):
-        print "Debut de la creation des sites d'entrainement pour la classe: " + selectedClass
+        if "training_sites" not in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
+            # Set local variables
+            out_path = wdPath
+            out_name = "training_sites"
+            geometry_type = "POLYGON"
+            template = ""
+            has_m = "DISABLED"
+            has_z = "DISABLED"
+            # Use Describe to get a SpatialReference object
+            spatial_ref = arcpy.Describe(rasterPath).spatialReference
+            # Execute CreateFeatureclass
+            self.result = arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, template,
+                                                has_m, has_z, spatial_ref)
+
+    def onLine(self, line_geometry):
+        print "Creation du site d'entrainement..."
+        self.site = line_geometry.getPart(0)
+        coord = []
+        for pt in self.site:
+            coord.append([pt.X, pt.Y])
+
+        firstpoint = coord[0]
+        coord.append(firstpoint)
+
+        print "Coord avec premier point (pour fermer polygone) ", coord
+
+        global trainingSitesDB
+        trainingSitesDB = self.result[0]
+        with arcpy.da.InsertCursor(trainingSitesDB, ['SHAPE@']) as cursor:
+            cursor.insertRow([coord])
 
 class ButtonClass4(object):
     """Implementation for addin_addin.button_4 (Button)"""
