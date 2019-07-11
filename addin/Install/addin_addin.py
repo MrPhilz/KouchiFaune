@@ -151,34 +151,34 @@ class ToolClass48(object):
                 # print row
 
         # calcul de l'aire du polygone créé
-        with arcpy.da.UpdateCursor("training_sites", "aire") as pixels1:
-            for i in pixels1:
-                if i[0] == 0.0:
-                    arcpy.CalculateField_management("training_sites", "aire", "!shape.area!", "PYTHON")
-
-        cellsize = arcpy.GetRasterProperties_management("extracted raster", "CELLSIZEX")
-        cellsize2 = float(str(cellsize).replace(',', '.'))
-        cellsizeEXP = cellsize2 ** 2
-        calculatecell = "!shape.area!/" + str(cellsizeEXP)
-        with arcpy.da.UpdateCursor("training_sites", "pixels") as pixels2:
-            for i in pixels2:
-                if i[0] == 0.0:
-                    arcpy.CalculateField_management("training_sites", "pixels", calculatecell, "PYTHON")
-
-        with arcpy.da.UpdateCursor("training_sites", "pixels") as critere:
-            for i in critere:
-                if i[0] > 500:
-                    pythonaddins.MessageBox(
-                        "Votre site d'entrainement dépasse la limite de 500 pixels!"
-                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
-                        "Attention!", "0")
-                    critere.deleteRow()
-                elif i[0] < 50:
-                    pythonaddins.MessageBox(
-                        "Votre site d'entrainement est sous la limite de 50 pixels!"
-                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
-                        "Attention!", "0")
-                    critere.deleteRow()
+        # with arcpy.da.UpdateCursor("training_sites", "aire") as pixels1:
+        #     for i in pixels1:
+        #         if i[0] == 0.0:
+        #             arcpy.CalculateField_management("training_sites", "aire", "!shape.area!", "PYTHON")
+        #
+        # cellsize = arcpy.GetRasterProperties_management("extracted raster", "CELLSIZEX")
+        # cellsize2 = float(str(cellsize).replace(',', '.'))
+        # cellsizeEXP = cellsize2 ** 2
+        # calculatecell = "!shape.area!/" + str(cellsizeEXP)
+        # with arcpy.da.UpdateCursor("training_sites", "pixels") as pixels2:
+        #     for i in pixels2:
+        #         if i[0] == 0.0:
+        #             arcpy.CalculateField_management("training_sites", "pixels", calculatecell, "PYTHON")
+        #
+        # with arcpy.da.UpdateCursor("training_sites", "pixels") as critere:
+        #     for i in critere:
+        #         if i[0] > 500:
+        #             pythonaddins.MessageBox(
+        #                 "Votre site d'entrainement dépasse la limite de 500 pixels!"
+        #                 "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+        #                 "Attention!", "0")
+        #             critere.deleteRow()
+        #         elif i[0] < 50:
+        #             pythonaddins.MessageBox(
+        #                 "Votre site d'entrainement est sous la limite de 50 pixels!"
+        #                 "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+        #                 "Attention!", "0")
+        #             critere.deleteRow()
 
         arcpy.RefreshActiveView()
 
@@ -204,7 +204,7 @@ class ButtonClass4(object):
         # Set local variables
         inRaster = "extracted raster"
         sigFile = outSig
-        probThreshold = "0.0"
+        probThreshold = "0.05"
         aPrioriWeight = "EQUAL"
         aPrioriFile = ""
         outConfidence = wdPath+"\confMLC"
