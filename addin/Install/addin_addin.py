@@ -207,12 +207,11 @@ class ButtonClass4(object):
         probThreshold = "0.0"
         aPrioriWeight = "EQUAL"
         aPrioriFile = ""
-        outConfidence = outRasterClassif+"\confMLC"
+        outConfidence = wdPath+"\confMLC"
 
         # Execute
         print "Execution de la classification par Maximum Likelihood..."
-        mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight,
-                            aPrioriFile, outConfidence)
+        mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight, aPrioriFile, outConfidence)
 
         # Save the output
         mlcOut.save(outRasterClassif)
