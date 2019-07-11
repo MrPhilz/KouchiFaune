@@ -39,8 +39,6 @@ class ToolClass41(object):
         firstpoint = coord[0]
         coord.append(firstpoint)
 
-        print "Coord avec premier point (pour fermer polygon) ", coord
-
         # Set local variables
         out_path = wdPath
         out_name = "maskRaster"
@@ -85,14 +83,6 @@ class ComboBoxClass1(object):
     def onSelChange(self, selection):
         global selectedClass
         selectedClass = selection
-    def onEditChange(self, text):
-        pass
-    def onFocus(self, focused):
-        pass
-    def onEnter(self):
-        pass
-    def refresh(self):
-        pass
 
 class ToolClass48(object):
     """Implementation for addin_addin.tool (Tool)"""
@@ -101,7 +91,12 @@ class ToolClass48(object):
         self.shape = "Line" # Can set to "Line", "Circle" or "Rectangle" for interactive shape drawing and to activate the onLine/Polygon/Circle event sinks.
 
     def onClick(self):
-        if "training_sites" not in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
+        layerNames = []
+        for layer in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
+            layerNames.append(layer.name)
+        if "training_sites" in layerNames:
+            print "La couche contenant les sites d'entrainement existe deja!"
+        else:
             # Set local variables
             out_path = wdPath
             out_name = "training_sites"
@@ -114,6 +109,7 @@ class ToolClass48(object):
             # Execute CreateFeatureclass
             self.result = arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, template,
                                                 has_m, has_z, spatial_ref)
+            arcpy.AddField_management("training_sites", "Classe", "TEXT")
 
     def onLine(self, line_geometry):
         print "Creation du site d'entrainement..."
@@ -131,6 +127,15 @@ class ToolClass48(object):
         trainingSitesDB = self.result[0]
         with arcpy.da.InsertCursor(trainingSitesDB, ['SHAPE@']) as cursor:
             cursor.insertRow([coord])
+        with arcpy.da.UpdateCursor(trainingSitesDB, ["Classe"]) as cursor:
+            for row in cursor:
+                if row[0] == u' ':
+                    print "list is empty"
+                    row[0] = selectedClass
+                    cursor.updateRow(row)
+                print row
+
+        arcpy.RefreshActiveView()
 
 class ButtonClass4(object):
     """Implementation for addin_addin.button_4 (Button)"""
@@ -139,6 +144,20 @@ class ButtonClass4(object):
         self.checked = False
     def onClick(self):
         print "Classification de la couche matricielle..."
+        inRaster = ""
+        inSamples = ""
+        for layer in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
+            if layer.name == "extracted raster":
+                inRaster = layer
+        for layer in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
+            if layer.name == "training_sites":
+                inSamples = layer
+        print inRaster, inSamples
+        outSig = wdPath+"\sig_file.gsg"
+        arcpy.sa.CreateSignatures(inRaster, inSamples, outSig)
+
+        arcpy.sa.MLClassify("extracted raster", outSig, "0.0",
+                   "EQUAL", "", wdPath+"\MLClassif")
 
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
