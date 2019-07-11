@@ -72,6 +72,19 @@ class ToolClass43(object):
         outExtractByMask = arcpy.sa.ExtractByMask(inRaster, inMaskData)
         arcpy.MakeRasterLayer_management(outExtractByMask, "extracted raster")
 
+        # Dé-sélection des couches inutiles
+        selectedLayers = ["maskRaster", "rasterLayer"]
+        mxd = arcpy.mapping.MapDocument("current")
+        df = arcpy.mapping.ListDataFrames(mxd, "Layers")[0]
+        layers = arcpy.mapping.ListLayers(mxd, "*", df)
+
+        for layer in layers:
+            if layer.name in selectedLayers:
+                layer.visible = False
+
+        arcpy.RefreshTOC()
+        arcpy.RefreshActiveView()
+
 class ComboBoxClass1(object):
     """Implementation for addin_addin.combobox (ComboBox)"""
     def __init__(self):
@@ -110,6 +123,8 @@ class ToolClass48(object):
             self.result = arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, template,
                                                 has_m, has_z, spatial_ref)
             arcpy.AddField_management("training_sites", "Classe", "TEXT")
+            arcpy.AddField_management("training_sites", "aire", "DOUBLE")
+            arcpy.AddField_management("training_sites", "pixels", "DOUBLE")
 
     def onLine(self, line_geometry):
         print "Creation du site d'entrainement..."
@@ -121,7 +136,7 @@ class ToolClass48(object):
         firstpoint = coord[0]
         coord.append(firstpoint)
 
-        print "Coord avec premier point (pour fermer polygone) ", coord
+        # print "Coord avec premier point (pour fermer polygone) ", coord
 
         global trainingSitesDB
         trainingSitesDB = self.result[0]
@@ -130,34 +145,80 @@ class ToolClass48(object):
         with arcpy.da.UpdateCursor(trainingSitesDB, ["Classe"]) as cursor:
             for row in cursor:
                 if row[0] == u' ':
-                    print "list is empty"
+                    # print "list is empty"
                     row[0] = selectedClass
                     cursor.updateRow(row)
-                print row
+                # print row
+
+        # calcul de l'aire du polygone créé
+        with arcpy.da.UpdateCursor("training_sites", "aire") as pixels1:
+            for i in pixels1:
+                if i[0] == 0.0:
+                    arcpy.CalculateField_management("training_sites", "aire", "!shape.area!", "PYTHON")
+
+        cellsize = arcpy.GetRasterProperties_management("extracted raster", "CELLSIZEX")
+        cellsize2 = float(str(cellsize).replace(',', '.'))
+        cellsizeEXP = cellsize2 ** 2
+        calculatecell = "!shape.area!/" + str(cellsizeEXP)
+        with arcpy.da.UpdateCursor("training_sites", "pixels") as pixels2:
+            for i in pixels2:
+                if i[0] == 0.0:
+                    arcpy.CalculateField_management("training_sites", "pixels", calculatecell, "PYTHON")
+
+        with arcpy.da.UpdateCursor("training_sites", "pixels") as critere:
+            for i in critere:
+                if i[0] > 500:
+                    pythonaddins.MessageBox(
+                        "Votre site d'entrainement dépasse la limite de 500 pixels!"
+                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+                        "Attention!", "0")
+                    critere.deleteRow()
+                elif i[0] < 50:
+                    pythonaddins.MessageBox(
+                        "Votre site d'entrainement est sous la limite de 50 pixels!"
+                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+                        "Attention!", "0")
+                    critere.deleteRow()
 
         arcpy.RefreshActiveView()
 
 class ButtonClass4(object):
     """Implementation for addin_addin.button_4 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Classification de la couche matricielle..."
-        inRaster = ""
-        inSamples = ""
-        for layer in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
-            if layer.name == "extracted raster":
-                inRaster = layer
-        for layer in arcpy.mapping.ListLayers(arcpy.mapping.MapDocument("CURRENT"), "", None):
-            if layer.name == "training_sites":
-                inSamples = layer
-        print inRaster, inSamples
+        inRaster = "extracted raster"
+        inSamples = "training_sites"
         outSig = wdPath+"\sig_file.gsg"
-        arcpy.sa.CreateSignatures(inRaster, inSamples, outSig)
+        sampField = "Classe"
+        print "Classification du raster: ", inRaster
+        print "Sites d'entrainement: ", inSamples
+        print "Selon la classe: ", sampField
+        print "Output du signatures file: ", outSig
+        print "Creation du signature file (.gsg)..."
+        arcpy.sa.CreateSignatures(inRaster, inSamples, outSig, "COVARIANCE", sampField)
+        outRasterClassif = wdPath+"\MLClassif"
 
-        arcpy.sa.MLClassify("extracted raster", outSig, "0.0",
-                   "EQUAL", "", wdPath+"\MLClassif")
+        # Set local variables
+        inRaster = "extracted raster"
+        sigFile = outSig
+        probThreshold = "0.0"
+        aPrioriWeight = "EQUAL"
+        aPrioriFile = ""
+        outConfidence = outRasterClassif+"\confMLC"
+
+        # Execute
+        print "Execution de la classification par Maximum Likelihood..."
+        mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight,
+                            aPrioriFile, outConfidence)
+
+        # Save the output
+        mlcOut.save(outRasterClassif)
+
+        # Add the classified raster to TOC and active view
+        arcpy.MakeRasterLayer_management(outRasterClassif, "classified raster")
 
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
