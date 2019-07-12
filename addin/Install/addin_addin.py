@@ -2,8 +2,6 @@
 
 import arcpy
 import pythonaddins
-from arcpy import env
-from arcpy.sa import *
 
 arcpy.env.overwriteOutput = True
 
