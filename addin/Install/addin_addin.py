@@ -199,6 +199,7 @@ class ButtonClass4(object):
         print "Output du signatures file: ", outSig
         print "Creation du signature file (.gsg)..."
         arcpy.sa.CreateSignatures(inRaster, inSamples, outSig, "COVARIANCE", sampField)
+
         outRasterClassif = wdPath+"\MLClassif"
 
         # Set local variables
@@ -212,20 +213,41 @@ class ButtonClass4(object):
         # Execute
         print "Execution de la classification par Maximum Likelihood..."
         mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight, aPrioriFile, outConfidence)
-
         # Save the output
         mlcOut.save(outRasterClassif)
-
         # Add the classified raster to TOC and active view
         arcpy.MakeRasterLayer_management(outRasterClassif, "classified raster")
 
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Nettoyage de la couche matricielle..."
+        arcpy.Resample_management("classified raster", "resample", "0,3 0,3", "NEAREST")
+
+        # Process: Boundary Clean
+        arcpy.gp.BoundaryClean_sa("resample", "boundaryC", "NO_SORT", "TWO_WAY")
+
+        # Process: Focal Statistics
+        arcpy.gp.FocalStatistics_sa("boundaryC", "focalS", "Rectangle 6 6 CELL", "MAJORITY", "DATA")
+
+        # Process: Focal Statistics (2)
+        arcpy.gp.FocalStatistics_sa("focalS", "cleaned_raster", "Rectangle 6 6 CELL", "MAJORITY", "DATA")
+
+        # Dé-sélection des couches inutiles
+        selectedLayers = ["classified raster", "resample", "boundaryC", "focalS"]
+        mxd = arcpy.mapping.MapDocument("current")
+        df = arcpy.mapping.ListDataFrames(mxd, "Layers")[0]
+        layers = arcpy.mapping.ListLayers(mxd, "*", df)
+
+        for layer in layers:
+            if layer.name in selectedLayers:
+                layer.visible = False
+
+        arcpy.RefreshTOC()
+        arcpy.RefreshActiveView()
 
 class ButtonClass6(object):
     """Implementation for addin_addin.button_6 (Button)"""
