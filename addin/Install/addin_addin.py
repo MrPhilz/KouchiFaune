@@ -153,34 +153,34 @@ class ToolClass48(object):
                 # print row
 
         # calcul de l'aire du polygone créé
-        with arcpy.da.UpdateCursor("training_sites", "aire") as pixels1:
-            for i in pixels1:
-                if i[0] == 0.0:
-                    arcpy.CalculateField_management("training_sites", "aire", "!shape.area!", "PYTHON")
-
-        cellsize = arcpy.GetRasterProperties_management("extracted raster", "CELLSIZEX")
-        cellsize2 = float(str(cellsize).replace(',', '.'))
-        cellsizeEXP = cellsize2 ** 2
-        calculatecell = "!shape.area!/" + str(cellsizeEXP)
-        with arcpy.da.UpdateCursor("training_sites", "pixels") as pixels2:
-            for i in pixels2:
-                if i[0] == 0.0:
-                    arcpy.CalculateField_management("training_sites", "pixels", calculatecell, "PYTHON")
-
-        with arcpy.da.UpdateCursor("training_sites", "pixels") as critere:
-            for i in critere:
-                if i[0] > 500:
-                    pythonaddins.MessageBox(
-                        "Votre site d'entrainement dépasse la limite de 500 pixels!"
-                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
-                        "Attention!", "0")
-                    critere.deleteRow()
-                elif i[0] < 50:
-                    pythonaddins.MessageBox(
-                        "Votre site d'entrainement est sous la limite de 50 pixels!"
-                        "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
-                        "Attention!", "0")
-                    critere.deleteRow()
+        # with arcpy.da.UpdateCursor("training_sites", "aire") as pixels1:
+        #     for i in pixels1:
+        #         if i[0] == 0.0:
+        #             arcpy.CalculateField_management("training_sites", "aire", "!shape.area!", "PYTHON")
+        #
+        # cellsize = arcpy.GetRasterProperties_management("extracted raster", "CELLSIZEX")
+        # cellsize2 = float(str(cellsize).replace(',', '.'))
+        # cellsizeEXP = cellsize2 ** 2
+        # calculatecell = "!shape.area!/" + str(cellsizeEXP)
+        # with arcpy.da.UpdateCursor("training_sites", "pixels") as pixels2:
+        #     for i in pixels2:
+        #         if i[0] == 0.0:
+        #             arcpy.CalculateField_management("training_sites", "pixels", calculatecell, "PYTHON")
+        #
+        # with arcpy.da.UpdateCursor("training_sites", "pixels") as critere:
+        #     for i in critere:
+        #         if i[0] > 500:
+        #             pythonaddins.MessageBox(
+        #                 "Votre site d'entrainement dépasse la limite de 500 pixels!"
+        #                 "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+        #                 "Attention!", "0")
+        #             critere.deleteRow()
+        #         elif i[0] < 50:
+        #             pythonaddins.MessageBox(
+        #                 "Votre site d'entrainement est sous la limite de 50 pixels!"
+        #                 "Votre site mesurait " + ("%.0f" % (i[0])) + " pixels",
+        #                 "Attention!", "0")
+        #             critere.deleteRow()
 
         arcpy.RefreshActiveView()
 
@@ -202,7 +202,7 @@ class ButtonClass4(object):
         print "Creation du signature file (.gsg)..."
         arcpy.sa.CreateSignatures(inRaster, inSamples, outSig, "COVARIANCE", sampField)
 
-        #outRasterClassif = wdPath+"\MLClassif"
+        outRasterClassif = wdPath+"\MLClassif"
 
         # Set local variables
         inRaster = "extracted raster"
@@ -210,16 +210,15 @@ class ButtonClass4(object):
         probThreshold = "0.05"
         aPrioriWeight = "EQUAL"
         aPrioriFile = ""
-
+        outConfidence = wdPath+"\confMLC"
 
         # Execute
         print "Execution de la classification par Maximum Likelihood..."
-        mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight, aPrioriFile,wdPath+"\\confdc")
+        mlcOut = arcpy.sa.MLClassify(inRaster, sigFile, probThreshold, aPrioriWeight, aPrioriFile, outConfidence)
         # Save the output
-        output = mlcOut.save(wdPath + "\\classify.tif")
-        classified = wdPath + "\\classify.tif"
+        mlcOut.save(outRasterClassif)
         # Add the classified raster to TOC and active view
-        arcpy.MakeRasterLayer_management(classified, "classified raster")
+        arcpy.MakeRasterLayer_management(outRasterClassif, "classified raster")
 
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
@@ -238,6 +237,19 @@ class ButtonClass5(object):
 
         # Process: Focal Statistics (2)
         arcpy.gp.FocalStatistics_sa("focalS", "cleaned_raster", "Rectangle 6 6 CELL", "MAJORITY", "DATA")
+
+        # Dé-sélection des couches inutiles
+        selectedLayers = ["classified raster", "resample", "boundaryC", "focalS"]
+        mxd = arcpy.mapping.MapDocument("current")
+        df = arcpy.mapping.ListDataFrames(mxd, "Layers")[0]
+        layers = arcpy.mapping.ListLayers(mxd, "*", df)
+
+        for layer in layers:
+            if layer.name in selectedLayers:
+                layer.visible = False
+
+        arcpy.RefreshTOC()
+        arcpy.RefreshActiveView()
 
 class ButtonClass6(object):
     """Implementation for addin_addin.button_6 (Button)"""
