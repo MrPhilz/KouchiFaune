@@ -252,10 +252,19 @@ class ButtonClass5(object):
 class ButtonClass6(object):
     """Implementation for addin_addin.button_6 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Vectorisation de la couche matricielle..."
+        # Process: Raster to Polygon
+        arcpy.RasterToPolygon_conversion("cleaned_raster", "vectorized_raster", "NO_SIMPLIFY", "Value")
+
+        # Process: Simplify Polygon
+        arcpy.SimplifyPolygon_cartography("vectorized_raster", "simplified_shoreline", "BEND_SIMPLIFY", "4 Meters",
+                                          "10 SquareMeters", "NO_CHECK", "NO_KEEP")
+        pythonaddins.MessageBox(
+            "Vectorisation et simplification du trait de côte terminé!".decode('utf-8').encode('cp1252'),
+            "Vectorisation", "0")
 
 class ButtonClass7(object):
     """Implementation for addin_addin.button_7 (Button)"""
