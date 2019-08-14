@@ -263,13 +263,13 @@ class ButtonClass6(object):
         arcpy.SimplifyPolygon_cartography("vectorized_raster", "simplified_shoreline", "BEND_SIMPLIFY", "4 Meters",
                                           "10 SquareMeters", "NO_CHECK", "NO_KEEP")
         pythonaddins.MessageBox(
-            "Vectorisation et simplification du trait de côte terminé!".decode('utf-8').encode('cp1252'),
+            "Vectorisation et simplification de la couche matricielle terminé!".decode('utf-8').encode('cp1252'),
             "Vectorisation", "0")
 
 class ButtonClass7(object):
     """Implementation for addin_addin.button_7 (Button)"""
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
         self.checked = False
     def onClick(self):
         print "Extraction des intersections des polygones a l'aide d'un arbre de decision..."
