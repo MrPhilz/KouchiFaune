@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f33569aa-9475-444e-aa4a-326fbae86578" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/addin.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/addin.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Install/addin_addin.py" beforeDir="false" afterPath="$PROJECT_DIR$/Install/addin_addin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/addin.esriaddin" beforeDir="false" afterPath="$PROJECT_DIR$/addin.esriaddin" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,12 +20,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/makeaddin.py">
+        <entry file="file://$PROJECT_DIR$/Install/addin_addin.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="654">
+              <caret line="326" column="133" lean-forward="true" selection-start-line="326" selection-start-column="133" selection-end-line="326" selection-end-column="133" />
             </state>
           </provider>
         </entry>
@@ -36,12 +37,13 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/config.xml" />
+        <option value="$PROJECT_DIR$/Install/addin_addin.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="785" />
-    <option name="y" value="-30" />
+    <option name="x" value="759" />
+    <option name="y" value="-14" />
     <option name="width" value="980" />
     <option name="height" value="1040" />
   </component>
@@ -58,6 +60,11 @@
             <path>
               <item name="addin" type="b2602c69:ProjectViewProjectNode" />
               <item name="addin" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="addin" type="b2602c69:ProjectViewProjectNode" />
+              <item name="addin" type="462c0819:PsiDirectoryNode" />
+              <item name="Install" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -126,16 +133,20 @@
       <workItem from="1559240544591" duration="466000" />
       <workItem from="1559241036530" duration="86000" />
       <workItem from="1559244760797" duration="291000" />
+      <workItem from="1566002771879" duration="2925000" />
+      <workItem from="1566048895967" duration="9626000" />
+      <workItem from="1566060735918" duration="1569000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="843000" />
+    <option name="totallyTimeSpent" value="14963000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25637585" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26439232" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -175,6 +186,13 @@
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Install/addin_addin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="654">
+          <caret line="326" column="133" lean-forward="true" selection-start-line="326" selection-start-column="133" selection-end-line="326" selection-end-column="133" />
         </state>
       </provider>
     </entry>

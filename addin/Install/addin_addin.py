@@ -273,3 +273,61 @@ class ButtonClass7(object):
         self.checked = False
     def onClick(self):
         print "Extraction des intersections des polygones a l'aide d'un arbre de decision..."
+
+        # Feature to line
+        arcpy.FeatureToLine_management("simplified_shoreline", "polylines_shoreline", "0.001 Meters", "NO_ATTRIBUTES")
+
+        # Create empty shape to store points
+        # Set local variables
+        out_path = wdPath
+        out_name = "mid_points"
+        geometry_type = "POINT"
+        template = ""
+        has_m = "DISABLED"
+        has_z = "DISABLED"
+        # Use Describe to get a SpatialReference object
+        spatial_ref = arcpy.Describe("simplified_shoreline").spatialReference
+        # Execute CreateFeatureclass
+        arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, template, has_m, has_z,
+                                                     spatial_ref)
+
+        # Create points at the middle distance on every polyline in polylines_shoreline
+        arcpy.DeleteFeatures_management("mid_points")
+
+        with arcpy.da.SearchCursor("polylines_shoreline", "SHAPE@") as in_cursor, \
+                arcpy.da.InsertCursor("mid_points", "SHAPE@") as out_cursor:
+            for row in in_cursor:
+                midpoint = row[0].positionAlongLine(0.50, True).firstPoint
+                out_cursor.insertRow([midpoint])
+
+        # Generate table of mid_points neighbors
+        arcpy.GenerateNearTable_analysis("mid_points", "simplified_shoreline", "shoreline_neighbors", "0 Meters",
+                                         "NO_LOCATION", "NO_ANGLE", "ALL", 2)
+
+        arcpy.CalculateField_management("shoreline_neighbors", "IN_FID", "[IN_FID]+1", "VB")
+
+        arcpy.JoinField_management("shoreline_neighbors", "NEAR_FID", "simplified_shoreline", "OBJECTID", "gridcode")
+
+        arcpy.Statistics_analysis("shoreline_neighbors", "shoreline_neighbors_dissolved", [["gridcode", "FIRST"], ["gridcode", "LAST"]], "IN_FID")
+
+        with arcpy.da.UpdateCursor("shoreline_neighbors_dissolved", ["FIRST_gridcode", "LAST_gridcode"]) as updateGC_cursor:
+            temp = 0
+            for row in updateGC_cursor:
+                temp = row[0]
+                if row[0] > row[1]:
+                    row[0] = row[1]
+                    row[1] = temp
+                    updateGC_cursor.updateRow(row)
+                else:
+                    pass
+
+        arcpy.AddField_management("shoreline_neighbors_dissolved", "intersection_type", "TEXT")
+        arcpy.CalculateField_management("shoreline_neighbors_dissolved", "intersection_type", '[FIRST_gridcode] & " & " & [LAST_gridcode]', "VB")
+
+        arcpy.JoinField_management("polylines_shoreline", "OBJECTID", "shoreline_neighbors_dissolved", "IN_FID", "intersection_type")
+
+        with arcpy.da.UpdateCursor("polylines_shoreline", "intersection_type") as cleaningCursor:
+            unwanted_types = ["1 & 1", "2 & 2", "3 & 3", "4 & 4", "5 & 5"]
+            for row in cleaningCursor:
+                if row[0] in unwanted_types:
+                    cleaningCursor.deleteRow()
