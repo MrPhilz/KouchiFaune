@@ -218,6 +218,13 @@ class ButtonClass4(object):
         # Add the classified raster to TOC and active view
         arcpy.MakeRasterLayer_management(outRasterClassif, "classified raster")
 
+        Ref_TS_Classes = []
+        global Ref_TS_Classes
+        with arcpy.da.SearchCursor("classified raster", ["Value", "CLASSNAME"]) as RTC_cursor:
+            for row in RTC_cursor:
+                if row[1] != u'':
+                    Ref_TS_Classes.append([row[0], row[1]])
+
 class ButtonClass5(object):
     """Implementation for addin_addin.button_5 (Button)"""
     def __init__(self):
@@ -265,6 +272,21 @@ class ButtonClass6(object):
         pythonaddins.MessageBox(
             "Vectorisation et simplification de la couche matricielle terminé!".decode('utf-8').encode('cp1252'),
             "Vectorisation", "0")
+
+        real_classes_gc = [[1, u'Vegetation saine'], [2, u'Vegetation fletrie'], [3, u'Sable sec'], [4, u'Sable humide'], [5, u'Laisse de mer']]
+
+        with arcpy.da.UpdateCursor("simplified_shoreline", "gridcode") as gcc_cursor:
+            for row in gcc_cursor:
+                if row[0] > 0:
+                    for i in Ref_TS_Classes:
+                        for j in real_classes_gc:
+                            if row[0] == i[0]:
+                                temp = i[1]
+                                if j[1] == temp:
+                                    row[0] = j[0]
+                                    gcc_cursor.updateRow(row)
+                else:
+                    pass
 
 class ButtonClass7(object):
     """Implementation for addin_addin.button_7 (Button)"""
@@ -331,3 +353,32 @@ class ButtonClass7(object):
             for row in cleaningCursor:
                 if row[0] in unwanted_types:
                     cleaningCursor.deleteRow()
+
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "CLEAR_SELECTION")
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "NEW_SELECTION", "intersection_type = '1 & 5' OR intersection_type = '2 & 5'")
+        arcpy.MakeFeatureLayer_management("polylines_shoreline", "Indicateurs forts")
+
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "CLEAR_SELECTION")
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "NEW_SELECTION",
+                                                "intersection_type = '1 & 3' OR intersection_type = '1 & 4' OR intersection_type = '2 & 3' OR intersection_type = '2 & 4' OR intersection_type = '3 & 5' OR intersection_type = '4 & 5'")
+        arcpy.MakeFeatureLayer_management("polylines_shoreline", "Indicateurs moyens")
+
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "CLEAR_SELECTION")
+        arcpy.SelectLayerByAttribute_management("polylines_shoreline", "NEW_SELECTION",
+                                                "intersection_type = '1 & 2' OR intersection_type = '3 & 4'")
+        arcpy.MakeFeatureLayer_management("polylines_shoreline", "Indicateurs faibles")
+
+        # Dé-sélection des couches inutiles
+        selectedLayers = ["Indicateurs forts", "Indicateurs moyens", "Indicateurs faibles", "rasterLayer"]
+        mxd = arcpy.mapping.MapDocument("current")
+        df = arcpy.mapping.ListDataFrames(mxd, "Layers")[0]
+        layers = arcpy.mapping.ListLayers(mxd, "*", df)
+
+        for layer in layers:
+            layer.visible = False
+        for layer1 in layers:
+            if layer1.name in selectedLayers:
+                layer1.visible = True
+
+        arcpy.RefreshTOC()
+        arcpy.RefreshActiveView()
